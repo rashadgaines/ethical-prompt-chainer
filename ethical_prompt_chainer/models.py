@@ -1,80 +1,117 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from enum import Enum
 from abc import ABC, abstractmethod
 from openai import OpenAI as OpenAIClient
 from xai_grok import Grok
 import os
+from dataclasses import dataclass, field
 
 class ModelType(Enum):
     """Types of models that can be guided through ethical reasoning."""
-    GPT4 = "gpt-4"
-    GPT35 = "gpt-3.5-turbo"
-    GROK = "grok-1"
-    CUSTOM = "custom"
+    CUSTOM = "custom"  # Base type for all custom model implementations
+
+@dataclass
+class ModelConfig:
+    """Configuration for a model's prompt engineering and reasoning capabilities."""
+    name: str
+    provider: str
+    version: str
+    reasoning_steps: List[str] = field(default_factory=list)  # Steps for chain-of-thought reasoning
+    prompt_templates: Dict[str, str] = field(default_factory=dict)  # Templates for different reasoning stages
+    parameters: Dict[str, Any] = field(default_factory=dict)  # Model-specific parameters
+    capabilities: Dict[str, bool] = field(default_factory=dict)  # Reasoning capabilities
+
+class ModelError(Exception):
+    """Exception raised for model-related errors."""
+    pass
 
 class BaseModel(ABC):
     """Base class for models that can be guided through ethical reasoning."""
     
-    def __init__(self, model_type: ModelType):
+    def __init__(self, config: ModelConfig):
         """
         Initialize the model.
         
         Args:
-            model_type: The type of model to use
+            config: The configuration for the model's prompt engineering and reasoning
         """
-        self.model_type = model_type
+        self.config = config
+        self._validate_config()
+    
+    def _validate_config(self) -> None:
+        """Validate model configuration."""
+        required_fields = ["name", "provider", "version", "reasoning_steps", "prompt_templates"]
+        for field in required_fields:
+            if not hasattr(self.config, field):
+                raise ModelError(f"Missing required field: {field}")
     
     @abstractmethod
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, reasoning_steps: Optional[List[str]] = None, **kwargs) -> str:
         """
-        Generate a response to guide the model's reasoning.
+        Generate a response using chain-of-thought reasoning.
         
         Args:
             prompt: The engineered prompt to guide model behavior
+            reasoning_steps: Optional custom reasoning steps to override defaults
+            **kwargs: Additional keyword arguments for the model
             
         Returns:
-            The model's response
+            The model's reasoned response
         """
         pass
+
+    def get_reasoning_steps(self) -> List[str]:
+        """Get the model's reasoning steps."""
+        return self.config.reasoning_steps
+
+    def get_prompt_templates(self) -> Dict[str, str]:
+        """Get the model's prompt templates."""
+        return self.config.prompt_templates
+
+    def get_capabilities(self) -> Dict[str, bool]:
+        """Get model capabilities."""
+        return self.config.capabilities
 
 class ModelFactory:
     """Factory for creating model instances for ethical reasoning."""
     
-    def get_model(self, model_type: ModelType) -> BaseModel:
-        """
-        Get a model instance for ethical reasoning.
-        
-        Args:
-            model_type: The type of model to create
-            
-        Returns:
-            A model instance that can be guided through ethical reasoning
-        """
-        if model_type == ModelType.GPT4:
-            return GPT4Model()
-        elif model_type == ModelType.GPT35:
-            return GPT35Model()
-        elif model_type == ModelType.GROK:
-            return GrokModel()
-        else:
-            raise ValueError(f"Unsupported model type: {model_type}")
+    _models: Dict[str, type[BaseModel]] = {}
+    
+    @classmethod
+    def register_model(cls, name: str, model_class: type[BaseModel]) -> None:
+        """Register a new model implementation."""
+        cls._models[name] = model_class
+    
+    @classmethod
+    def create_model(cls, config: ModelConfig) -> BaseModel:
+        """Create a model instance."""
+        if config.provider not in cls._models:
+            raise ModelError(f"Unknown model provider: {config.provider}")
+        return cls._models[config.provider](config)
+    
+    @classmethod
+    def get_available_models(cls) -> Dict[str, type[BaseModel]]:
+        """Get all available model implementations."""
+        return cls._models.copy()
 
 class GPT4Model(BaseModel):
     """GPT-4 model for ethical reasoning."""
     
-    def __init__(self):
+    def __init__(self, config: ModelConfig):
         """Initialize the GPT-4 model."""
-        super().__init__(ModelType.GPT4)
+        super().__init__(config)
     
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, reasoning_steps: Optional[List[str]] = None, **kwargs) -> str:
         """
         Generate a response using GPT-4.
         
         Args:
             prompt: The engineered prompt to guide model behavior
+            reasoning_steps: Optional custom reasoning steps to override defaults
+            **kwargs: Additional keyword arguments for the model
             
         Returns:
-            The model's response
+            The model's reasoned response
         """
         # Implementation would use OpenAI's API
         pass
@@ -82,19 +119,21 @@ class GPT4Model(BaseModel):
 class GPT35Model(BaseModel):
     """GPT-3.5 model for ethical reasoning."""
     
-    def __init__(self):
+    def __init__(self, config: ModelConfig):
         """Initialize the GPT-3.5 model."""
-        super().__init__(ModelType.GPT35)
+        super().__init__(config)
     
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, reasoning_steps: Optional[List[str]] = None, **kwargs) -> str:
         """
         Generate a response using GPT-3.5.
         
         Args:
             prompt: The engineered prompt to guide model behavior
+            reasoning_steps: Optional custom reasoning steps to override defaults
+            **kwargs: Additional keyword arguments for the model
             
         Returns:
-            The model's response
+            The model's reasoned response
         """
         # Implementation would use OpenAI's API
         pass
@@ -102,19 +141,21 @@ class GPT35Model(BaseModel):
 class GrokModel(BaseModel):
     """Grok model for ethical reasoning."""
     
-    def __init__(self):
+    def __init__(self, config: ModelConfig):
         """Initialize the Grok model."""
-        super().__init__(ModelType.GROK)
+        super().__init__(config)
     
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, reasoning_steps: Optional[List[str]] = None, **kwargs) -> str:
         """
         Generate a response using Grok.
         
         Args:
             prompt: The engineered prompt to guide model behavior
+            reasoning_steps: Optional custom reasoning steps to override defaults
+            **kwargs: Additional keyword arguments for the model
             
         Returns:
-            The model's response
+            The model's reasoned response
         """
         # Implementation would use Grok's API
         pass
@@ -172,4 +213,39 @@ class GrokModel(BaseModel):
                 "temperature": 0.7,
                 "max_tokens": 2048
             }
-        return {} 
+        return {}
+
+# Example model implementation
+class CustomModel(BaseModel):
+    """Custom model implementation for ethical reasoning."""
+    
+    def generate(self, prompt: str, reasoning_steps: Optional[List[str]] = None, **kwargs) -> str:
+        """
+        Generate a response using chain-of-thought reasoning.
+        
+        Args:
+            prompt: The engineered prompt to guide model behavior
+            reasoning_steps: Optional custom reasoning steps to override defaults
+            **kwargs: Additional keyword arguments for the model
+            
+        Returns:
+            The model's reasoned response
+        """
+        # Use provided reasoning steps or defaults
+        steps = reasoning_steps or self.get_reasoning_steps()
+        
+        # Apply each reasoning step
+        response = []
+        for step in steps:
+            # Get the appropriate prompt template
+            template = self.get_prompt_templates().get(step, "")
+            # Apply the template and generate response
+            step_response = self._generate_step_response(template, prompt, **kwargs)
+            response.append(step_response)
+        
+        return "\n".join(response)
+    
+    def _generate_step_response(self, template: str, prompt: str, **kwargs) -> str:
+        """Generate a response for a single reasoning step."""
+        # Implementation would use the model's API
+        pass 

@@ -1,316 +1,121 @@
-# Ethical Prompt Chaining System
+# Ethical Prompt Chainer
 
-A sophisticated system for analyzing ethical dilemmas using chain-of-thought prompting and constitutional principles.
+A reusable framework for ethical analysis using chain-of-thought prompting. This framework provides a structured approach to analyzing ethical dilemmas through a series of interconnected prompts that guide the analysis process.
 
-## Features
+## Core Features
 
-### Enhanced Prompt Diversity and Contextual Adaptation
-- Dynamic prompt generation based on dilemma context (economic, social, environmental, etc.)
-- Context-specific value mappings and considerations
-- Automatic identification of dilemma type and relevant ethical principles
-- Customized prompts for different types of analysis (framing, stakeholder analysis, etc.)
+- **Modular Analysis Pipeline**: Chain together different types of ethical analysis
+- **Extensible Framework**: Easily add new analysis types or ethical frameworks
+- **Transparent Reasoning**: Step-by-step explanation of ethical decisions
+- **Customizable Output**: Format results for different use cases
 
-### Automated Data Validation
-- Comprehensive validation of dilemma inputs
-- Checks for minimum length, question format, and completeness
-- Detailed error reporting and logging
-- Integration with the main analysis pipeline
-
-### Core Functionality
-- Constitutional principle-based ethical analysis
-- Stakeholder impact assessment
-- Legal feasibility evaluation
-- Comprehensive solution recommendations
-- Monitoring plan generation
-
-## Installation
-
-1. Clone this repository
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Set up your API keys in a `.env` file:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-GROK_API_KEY=your_grok_api_key_here
-```
-
-## Usage
+## Quick Start
 
 ```python
 from ethical_prompt_chainer import EthicalPromptChainer
 
 # Initialize the chainer
-chainer = EthicalPromptChainer(model_name="gpt-4")
+chainer = EthicalPromptChainer()
 
 # Analyze a dilemma
-dilemma = "Should universal basic income be implemented to reduce inequality, or should we maintain targeted welfare programs to avoid disincentivizing work?"
+dilemma = "Should AI be used for hiring decisions?"
 analysis = chainer.analyze_dilemma(dilemma)
 
-# Print the formatted analysis
+# Get formatted results
 print(chainer.format_analysis(analysis))
 ```
 
-## Example Output
+## Framework Structure
 
 ```
-Ethical Analysis Report
-
-Dilemma:
-Should universal basic income be implemented to reduce inequality, or should we maintain targeted welfare programs to avoid disincentivizing work?
-
-Validation Status: ✓ Valid
-Context: economic, social
-
-1. Dilemma Framing:
-[Analysis of constitutional principles and legal frameworks...]
-
-2. Stakeholder Analysis:
-[Detailed stakeholder impact assessment...]
-
-3. Consequence Analysis:
-[Ethical balancing test results...]
-
-4. Ethical and Legal Principles:
-[Legal feasibility evaluation...]
-
-5. Proposed Solution:
-[Comprehensive recommendation with safeguards...]
+ethical_prompt_chainer/
+├── chainer.py          # Main analysis pipeline
+├── prompts.py          # Prompt templates
+├── models.py           # Model interfaces
+├── ethical_frameworks.py  # Ethical framework definitions
+└── analyzers/          # Analysis modules
+    ├── stakeholder.py
+    ├── long_term.py
+    └── explainable.py
 ```
 
-## Testing
+## Extending the Framework
 
-Run the test suite:
+### Adding a New Analysis Type
+
+```python
+from ethical_prompt_chainer import BaseAnalyzer
+
+class CustomAnalyzer(BaseAnalyzer):
+    def analyze(self, dilemma: str, context: List[str]) -> AnalysisResult:
+        # Implement your analysis logic
+        pass
+```
+
+### Creating a New Ethical Framework
+
+```python
+from ethical_prompt_chainer import EthicalFramework
+
+class CustomFramework(EthicalFramework):
+    def __init__(self):
+        self.principles = [
+            "Principle 1",
+            "Principle 2"
+        ]
+        self.weights = {
+            "Principle 1": 0.6,
+            "Principle 2": 0.4
+        }
+```
+
+## Example Use Case: AI Ethics Analysis
+
+```python
+from ethical_prompt_chainer import EthicalPromptChainer
+
+# Initialize with specific configuration
+chainer = EthicalPromptChainer(
+    model_type="gpt-4",
+    include_explanation=True
+)
+
+# Define an AI ethics dilemma
+dilemma = """
+Should an AI system be deployed for automated hiring decisions,
+considering both efficiency gains and potential bias concerns?
+"""
+
+# Perform analysis
+analysis = chainer.analyze_dilemma(
+    dilemma,
+    context=["technology", "employment", "fairness"]
+)
+
+# Access specific aspects of the analysis
+print("Ethical Principles:", analysis.ethical_principles)
+print("Stakeholder Impacts:", analysis.stakeholder_impacts)
+print("Long-term Effects:", analysis.long_term_impact)
+```
+
+## Installation
 
 ```bash
-python -m unittest discover ethical_prompt_chainer/tests
+pip install ethical-prompt-chainer
 ```
 
-## Project Structure
+## Documentation
 
-```
-ethical-prompt-chainer/
-├── requirements.txt
-├── README.md
-├── ethical_prompt_chainer/
-│   ├── __init__.py
-│   ├── chainer.py
-│   ├── prompts.py
-│   ├── models.py
-│   ├── data_validator.py
-│   ├── config.py
-│   └── logging.py
-└── examples/
-    └── dilemmas.py
-```
-
-## Ethical Framework
-
-The tool uses a structured approach to ethical reasoning:
-
-1. **Stakeholder Identification**: Identify all parties affected by the decision
-2. **Consequence Analysis**: Evaluate potential outcomes and their impacts
-3. **Principle Consideration**: Apply relevant ethical principles
-4. **Solution Development**: Propose and justify a course of action
-
-## Prompt Design and Analysis
-
-### Prompt Chain Structure
-
-The system uses a sophisticated chain of prompts to guide the model through ethical analysis:
-
-1. **Initial Analysis Prompt**
-   ```python
-   "Analyze the following ethical dilemma: {dilemma}
-   Consider the following aspects:
-   - Core ethical principles involved
-   - Key stakeholders affected
-   - Potential consequences
-   - Legal and regulatory context"
-   ```
-
-2. **Stakeholder Impact Prompt**
-   ```python
-   "For the identified stakeholders in the dilemma: {stakeholders}
-   Evaluate:
-   - Direct and indirect impacts
-   - Power dynamics
-   - Vulnerability factors
-   - Mitigation needs"
-   ```
-
-3. **Long-term Impact Prompt**
-   ```python
-   "Assess the long-term implications:
-   - Future scenarios (best/worst/most likely)
-   - Sustainability metrics
-   - Intergenerational effects
-   - Risk factors"
-   ```
-
-4. **Solution Generation Prompt**
-   ```python
-   "Based on the analysis, propose solutions that:
-   - Address key ethical concerns
-   - Balance stakeholder interests
-   - Consider long-term impacts
-   - Include implementation safeguards"
-   ```
-
-### Prompt Influence Analysis
-
-Our analysis of prompt influence on model behavior reveals several key findings:
-
-1. **Context Sensitivity**
-   - Models show higher accuracy when prompts include specific context markers
-   - Economic dilemmas benefit from explicit cost-benefit framing
-   - Social dilemmas require emphasis on stakeholder relationships
-   - Environmental dilemmas need clear sustainability metrics
-
-2. **Chain-of-Thought Benefits**
-   - Step-by-step reasoning prompts improve consistency
-   - Explicit principle application reduces bias
-   - Structured analysis leads to more comprehensive solutions
-   - Clear separation of concerns improves clarity
-
-3. **Framework Integration**
-   - Multiple ethical frameworks provide more balanced analysis
-   - Framework-specific prompts help maintain focus
-   - Weighted consideration of principles improves outcomes
-   - Cross-framework validation reduces bias
-
-4. **Impact on Output Quality**
-   - Detailed prompts produce more nuanced analysis
-   - Structured prompts improve consistency
-   - Context-aware prompts enhance relevance
-   - Multi-step prompts reduce hallucinations
-
-### Example Outputs
-
-#### Basic Dilemma Analysis
-```
-Dilemma: Should AI be used for hiring decisions?
-
-Analysis:
-1. Ethical Principles:
-   - Fairness and non-discrimination
-   - Transparency and accountability
-   - Human dignity and autonomy
-   - Equal opportunity
-
-2. Stakeholder Impacts:
-   - Job applicants: Potential bias and lack of transparency
-   - Employers: Efficiency vs. ethical responsibility
-   - Society: Impact on employment equity
-   - AI developers: Responsibility for bias mitigation
-
-3. Long-term Considerations:
-   - Evolution of hiring practices
-   - Impact on workplace diversity
-   - Technological dependency
-   - Regulatory implications
-
-4. Recommendations:
-   - Implement AI as a decision support tool
-   - Maintain human oversight
-   - Regular bias audits
-   - Transparent decision criteria
-```
-
-#### Complex Dilemma Analysis
-```
-Dilemma: Balancing environmental protection with economic development
-
-Analysis:
-1. Ethical Principles:
-   - Environmental stewardship
-   - Economic sustainability
-   - Intergenerational equity
-   - Social responsibility
-
-2. Stakeholder Impacts:
-   - Local communities: Environmental health vs. economic opportunity
-   - Future generations: Resource availability
-   - Businesses: Profitability vs. environmental responsibility
-   - Government: Regulatory balance
-
-3. Long-term Considerations:
-   - Climate change impact
-   - Resource sustainability
-   - Economic resilience
-   - Social stability
-
-4. Recommendations:
-   - Sustainable development framework
-   - Green technology investment
-   - Community engagement
-   - Environmental impact bonds
-```
-
-## Model Behavior Analysis
-
-### Prompt Design Impact
-
-1. **Structure and Clarity**
-   - Clear prompts lead to more focused responses
-   - Structured analysis improves consistency
-   - Explicit instructions reduce ambiguity
-   - Step-by-step reasoning enhances quality
-
-2. **Context Integration**
-   - Context-aware prompts improve relevance
-   - Domain-specific framing enhances accuracy
-   - Multi-perspective prompts reduce bias
-   - Historical context improves understanding
-
-3. **Ethical Framework Application**
-   - Framework-specific prompts maintain focus
-   - Principle-based analysis improves consistency
-   - Multi-framework consideration reduces bias
-   - Weighted analysis provides balance
-
-4. **Output Quality Metrics**
-   - Consistency: 85% improvement with structured prompts
-   - Completeness: 90% coverage with detailed prompts
-   - Bias reduction: 75% improvement with multi-framework analysis
-   - Clarity: 80% enhancement with step-by-step reasoning
-
-### Best Practices
-
-1. **Prompt Design**
-   - Use clear, specific instructions
-   - Include relevant context
-   - Structure analysis steps
-   - Specify output format
-
-2. **Framework Integration**
-   - Apply multiple ethical frameworks
-   - Weight principles appropriately
-   - Consider context relevance
-   - Validate across frameworks
-
-3. **Quality Assurance**
-   - Validate input data
-   - Check output consistency
-   - Monitor bias indicators
-   - Review ethical alignment
-
-4. **Continuous Improvement**
-   - Collect feedback
-   - Analyze performance
-   - Update prompt designs
-   - Refine frameworks
+For detailed documentation, see the [docs](docs/) directory:
+- [Getting Started](docs/getting_started.md)
+- [API Reference](docs/api_reference.md)
+- [Architecture](docs/architecture.md)
+- [Examples](docs/examples.md)
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT License - see LICENSE file for details 
+MIT License - see [LICENSE](LICENSE) for details. 

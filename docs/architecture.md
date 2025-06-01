@@ -1,259 +1,243 @@
-# Architecture
+# Architecture Overview
 
-This document describes the architecture of the Ethical Prompt Chainer system.
+The Ethical Prompt Chainer is designed to improve AI model behavior through structured prompt engineering. This document outlines the system's architecture and how it guides models toward more thoughtful and ethically-aware responses.
 
 ## System Overview
 
-The Ethical Prompt Chainer is designed as a modular, extensible system for ethical analysis. The architecture follows a layered approach with clear separation of concerns.
-
 ```
-┌─────────────────────────────────────────┐
-│            EthicalPromptChainer         │
-└───────────────────┬─────────────────────┘
-                    │
-    ┌───────────────┴───────────────┐
-    │                               │
-┌───▼─────┐                   ┌─────▼─────┐
-│ Models  │                   │ Prompts   │
-└─────────┘                   └───────────┘
-    │                               │
-    │                               │
-┌───▼─────┐                   ┌─────▼─────┐
-│Analysis │                   │Validation │
-└─────────┘                   └───────────┘
+┌─────────────────────────────────────────────────────────┐
+│                  Ethical Prompt Chainer                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │   Models    │    │   Prompts   │    │ Frameworks  │  │
+│  └─────────────┘    └─────────────┘    └─────────────┘  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Component Interaction
+## Core Components
 
-### Core Components
+### 1. Model Layer
+- **Purpose**: Interface with different AI models to guide their behavior
+- **Components**:
+  - `BaseModel`: Abstract base class for model implementations
+  - `ModelFactory`: Creates appropriate model instances
+  - Model implementations (GPT-4, GPT-3.5, Grok)
+- **Key Features**:
+  - Consistent interface across different models
+  - Model-specific optimizations
+  - Error handling and retry logic
 
-1. **EthicalPromptChainer**
-   - Main entry point
-   - Orchestrates analysis process
-   - Manages component interaction
+### 2. Prompt Layer
+- **Purpose**: Engineer prompts that guide model behavior
+- **Components**:
+  - `PromptTemplate`: Structured templates for different reasoning steps
+  - `EthicalPromptTemplates`: Collection of engineered prompts
+  - Context-aware prompt generation
+- **Key Features**:
+  - Structured reasoning steps
+  - Context-sensitive prompts
+  - Clear guidance for models
 
-2. **Model Layer**
-   - ModelFactory: Creates model instances
-   - Model implementations
-   - Benchmarking support
+### 3. Framework Layer
+- **Purpose**: Provide ethical frameworks to guide model reasoning
+- **Components**:
+  - `EthicalFramework`: Definition of ethical principles and guidance
+  - `EthicalFrameworkManager`: Manages and applies frameworks
+  - Framework implementations (Utilitarian, Deontological, etc.)
+- **Key Features**:
+  - Multiple ethical perspectives
+  - Structured evaluation criteria
+  - Extensible framework system
 
-3. **Analysis Layer**
-   - Ethical framework analysis
-   - Stakeholder impact analysis
-   - Long-term impact analysis
-   - Explainable AI
-
-4. **Validation Layer**
-   - Input validation
-   - Context validation
-   - Result validation
-
-### Data Flow
+## Data Flow
 
 1. **Input Processing**
-   ```
-   Dilemma → Validation → Context Extraction
-   ```
+   - Receive ethical dilemma and context
+   - Validate and preprocess input
+   - Identify relevant frameworks
 
-2. **Analysis Pipeline**
-   ```
-   Context → Framework Selection → Principle Analysis
-   → Impact Assessment → Solution Generation
-   ```
+2. **Prompt Engineering**
+   - Generate context-aware prompts
+   - Apply ethical frameworks
+   - Structure reasoning steps
 
-3. **Output Generation**
-   ```
-   Results → Formatting → Explanation Generation
-   → Report Creation
-   ```
+3. **Model Guidance**
+   - Send engineered prompts to model
+   - Process model responses
+   - Guide reasoning process
+
+4. **Output Generation**
+   - Format model responses
+   - Include reasoning process
+   - Provide confidence assessment
 
 ## Extension Points
 
-### 1. Model Integration
-
+### 1. Adding New Models
 ```python
 class CustomModel(BaseModel):
-    def analyze(self, text: str) -> AnalysisResult:
-        # Custom analysis implementation
+    def generate(self, prompt: str) -> str:
+        # Implement model-specific logic
         pass
 ```
 
-### 2. Framework Extension
-
+### 2. Creating New Prompts
 ```python
-class CustomFramework(EthicalFramework):
-    def __init__(self):
-        self.principles = [...]
-        self.weights = {...}
+new_template = PromptTemplate(
+    type=PromptType.CUSTOM,
+    template="Your prompt template...",
+    expected_format="Expected format...",
+    guidance_notes="Guidance notes..."
+)
 ```
 
-### 3. Analysis Method
-
+### 3. Implementing New Frameworks
 ```python
-class CustomAnalyzer(BaseAnalyzer):
-    def analyze(self, context: Dict) -> AnalysisResult:
-        # Custom analysis implementation
-        pass
+new_framework = EthicalFramework(
+    type=FrameworkType.CUSTOM,
+    principles=["Your principles..."],
+    guidance_prompts={
+        "analysis": "Your analysis prompt...",
+        "evaluation": "Your evaluation prompt..."
+    },
+    evaluation_criteria=["Your criteria..."]
+)
 ```
 
 ## Design Patterns
 
-### 1. Factory Pattern
-- Model creation
-- Framework instantiation
-- Analyzer creation
+1. **Factory Pattern**
+   - Model creation
+   - Framework instantiation
+   - Prompt template generation
 
-### 2. Strategy Pattern
-- Analysis method selection
-- Framework selection
-- Explanation generation
+2. **Strategy Pattern**
+   - Model selection
+   - Framework application
+   - Prompt generation strategies
 
-### 3. Observer Pattern
-- Progress monitoring
-- Result notification
-- Error handling
-
-### 4. Chain of Responsibility
-- Analysis pipeline
-- Validation chain
-- Processing steps
+3. **Template Method**
+   - Reasoning process structure
+   - Framework application flow
+   - Model interaction patterns
 
 ## Error Handling
 
-### 1. Validation Errors
-```python
-class ValidationError(Exception):
-    def __init__(self, message: str, details: Dict):
-        self.message = message
-        self.details = details
-```
+1. **Model Errors**
+   - API failures
+   - Rate limiting
+   - Invalid responses
 
-### 2. Analysis Errors
-```python
-class AnalysisError(Exception):
-    def __init__(self, message: str, context: Dict):
-        self.message = message
-        self.context = context
-```
+2. **Prompt Errors**
+   - Template validation
+   - Context processing
+   - Format verification
 
-### 3. Model Errors
-```python
-class ModelError(Exception):
-    def __init__(self, message: str, model_info: Dict):
-        self.message = message
-        self.model_info = model_info
-```
+3. **Framework Errors**
+   - Invalid framework selection
+   - Missing principles
+   - Incomplete guidance
 
-## Configuration Management
+## Configuration
 
-### 1. Environment Configuration
-```python
-class Config:
-    def __init__(self):
-        self.model_settings = {...}
-        self.analysis_settings = {...}
-        self.validation_settings = {...}
-```
+1. **Model Configuration**
+   - API keys
+   - Model parameters
+   - Rate limits
 
-### 2. Runtime Configuration
-```python
-class RuntimeConfig:
-    def __init__(self):
-        self.active_frameworks = [...]
-        self.analysis_options = {...}
-        self.output_format = "..."
-```
+2. **Prompt Configuration**
+   - Template settings
+   - Context rules
+   - Format requirements
+
+3. **Framework Configuration**
+   - Framework selection
+   - Principle weights
+   - Evaluation criteria
 
 ## Performance Considerations
 
-### 1. Caching
-- Framework caching
-- Model response caching
-- Analysis result caching
+1. **Prompt Optimization**
+   - Efficient template structure
+   - Context-aware generation
+   - Caching strategies
 
-### 2. Parallel Processing
-- Concurrent analysis
-- Batch processing
-- Resource management
+2. **Model Interaction**
+   - Batch processing
+   - Response caching
+   - Error retry logic
 
-### 3. Resource Optimization
-- Memory management
-- CPU utilization
-- API usage optimization
+3. **Resource Management**
+   - API quota management
+   - Memory optimization
+   - Connection pooling
 
 ## Security Considerations
 
-### 1. Input Sanitization
-- Text cleaning
-- Context validation
-- Parameter checking
+1. **API Security**
+   - Secure key storage
+   - Request validation
+   - Rate limiting
 
-### 2. API Security
-- Key management
-- Rate limiting
-- Access control
+2. **Input Validation**
+   - Prompt sanitization
+   - Context verification
+   - Format checking
 
-### 3. Data Protection
-- Result encryption
-- Secure storage
-- Access logging
+3. **Output Validation**
+   - Response verification
+   - Content filtering
+   - Format validation
 
 ## Monitoring and Logging
 
-### 1. Performance Monitoring
-```python
-class PerformanceMonitor:
-    def track_operation(self, operation: str, duration: float):
-        # Track operation performance
-        pass
-```
+1. **Performance Monitoring**
+   - Response times
+   - Success rates
+   - Resource usage
 
-### 2. Error Logging
-```python
-class ErrorLogger:
-    def log_error(self, error: Exception, context: Dict):
-        # Log error details
-        pass
-```
+2. **Error Logging**
+   - Model errors
+   - Prompt failures
+   - Framework issues
 
-### 3. Usage Tracking
-```python
-class UsageTracker:
-    def track_usage(self, operation: str, details: Dict):
-        # Track system usage
-        pass
-```
+3. **Usage Tracking**
+   - Model usage
+   - Framework application
+   - Prompt effectiveness
 
 ## Future Extensions
 
-### 1. Plugin System
-- Custom analyzers
-- Framework plugins
-- Output formatters
+1. **Enhanced Prompt Engineering**
+   - Dynamic prompt generation
+   - Context-aware templates
+   - Multi-step reasoning
 
-### 2. API Integration
-- REST API
-- GraphQL support
-- WebSocket updates
+2. **Advanced Model Support**
+   - Additional model types
+   - Custom model integration
+   - Model-specific optimizations
 
-### 3. UI Components
-- Web interface
-- CLI tools
-- Desktop application
+3. **Framework Enhancements**
+   - New ethical frameworks
+   - Dynamic framework selection
+   - Framework combination
 
 ## Best Practices
 
-### 1. Code Organization
-- Modular design
-- Clear interfaces
-- Consistent patterns
+1. **Code Organization**
+   - Clear component boundaries
+   - Consistent naming
+   - Modular design
 
-### 2. Testing Strategy
-- Unit tests
-- Integration tests
-- Performance tests
+2. **Testing Strategy**
+   - Unit tests for components
+   - Integration tests for flows
+   - Model behavior tests
 
-### 3. Documentation
-- Code comments
-- API documentation
-- Usage examples 
+3. **Documentation**
+   - Clear API documentation
+   - Usage examples
+   - Extension guides 

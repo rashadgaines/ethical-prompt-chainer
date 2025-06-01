@@ -1,67 +1,45 @@
 # Ethical Prompt Chainer Documentation
 
-Welcome to the Ethical Prompt Chainer documentation. This documentation provides comprehensive information about the system's features, architecture, and usage.
+Welcome to the Ethical Prompt Chainer documentation. This framework helps improve AI model behavior through structured prompt engineering and chain-of-thought reasoning.
 
-## Table of Contents
+## Core Documentation
 
-1. [Getting Started](getting_started.md)
-   - Installation
-   - Basic Usage
-   - Configuration
-   - Quick Start Guide
-
-2. [Core Concepts](core_concepts.md)
-   - Ethical Analysis Process
-   - Prompt Chaining
-   - Ethical Frameworks
-   - Stakeholder Analysis
-   - Long-term Impact Assessment
-   - Explainable AI
-
-3. [Architecture](architecture.md)
+1. [Architecture Overview](architecture.md)
    - System Overview
-   - Component Interaction
+   - Core Components
    - Data Flow
    - Extension Points
 
-4. [API Reference](api_reference.md)
-   - EthicalPromptChainer
-   - EthicalAnalysis
-   - EthicalFrameworkManager
-   - StakeholderAnalyzer
-   - LongTermImpactAnalyzer
-   - ExplainableAI
-
-5. [Guides](guides.md)
-   - Creating Custom Ethical Frameworks
-   - Extending Analysis Capabilities
+2. [Prompt Engineering Guide](prompt_engineering.md)
+   - Understanding Prompt Engineering
+   - Core Prompt Types
    - Best Practices
+   - Advanced Techniques
+
+3. [Ethical Frameworks Guide](ethical_frameworks.md)
+   - Available Frameworks
+   - Framework Integration
+   - Best Practices
+   - Advanced Techniques
+
+4. [Model Integration Guide](model_integration.md)
+   - Supported Models
+   - Model Configuration
+   - Error Handling
    - Performance Optimization
-
-6. [Examples](examples.md)
-   - Basic Usage Examples
-   - Advanced Scenarios
-   - Integration Examples
-   - Custom Extensions
-
-7. [Contributing](contributing.md)
-   - Development Setup
-   - Code Style
-   - Testing
-   - Pull Request Process
 
 ## Key Features
 
-- **Ethical Framework Integration**: Comprehensive support for multiple ethical frameworks
-- **Stakeholder Impact Analysis**: Detailed assessment of impacts on different stakeholder groups
-- **Long-term Impact Assessment**: Analysis of future consequences and sustainability
-- **Explainable AI**: Transparent and interpretable decision-making process
-- **Extensible Architecture**: Easy to extend with new frameworks and analysis methods
+- **Structured Prompt Engineering**: Carefully crafted prompts that guide models through ethical reasoning
+- **Chain-of-Thought Approach**: Step-by-step guidance for complex ethical reasoning
+- **Multiple Model Support**: Works with GPT-4, GPT-3.5, and Grok models
+- **Ethical Frameworks**: Built-in frameworks to guide model behavior
+- **Transparent Reasoning**: Models explain their thought process and confidence levels
 
 ## Support
 
 For support, please:
-1. Check the [FAQ](faq.md)
+1. Check the [README](../README.md) for quick start and examples
 2. Search existing [Issues](https://github.com/yourusername/ethical-prompt-chainer/issues)
 3. Create a new issue if needed
 

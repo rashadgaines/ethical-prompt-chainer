@@ -1,5 +1,22 @@
 from typing import Dict, List, Optional
 import re
+from dataclasses import dataclass
+from enum import Enum
+
+class PromptType(Enum):
+    """Types of prompts used to guide model behavior."""
+    PRINCIPLE_IDENTIFICATION = "principle_identification"
+    REASONING_GUIDANCE = "reasoning_guidance"
+    RECOMMENDATION_GUIDANCE = "recommendation_guidance"
+    CONFIDENCE_ASSESSMENT = "confidence_assessment"
+
+@dataclass
+class PromptTemplate:
+    """Template for engineering model behavior through prompts."""
+    type: PromptType
+    template: str
+    expected_format: str
+    guidance_notes: str
 
 class EthicalPromptTemplates:
     """Templates for ethical reasoning steps in policy dilemmas."""
@@ -39,6 +56,96 @@ class EthicalPromptTemplates:
             "ethical_balancing": self.ETHICAL_BALANCING,
             "legal_feasibility": self.LEGAL_FEASIBILITY,
             "recommendation": self.RECOMMENDATION
+        }
+        self.templates = {
+            PromptType.PRINCIPLE_IDENTIFICATION: PromptTemplate(
+                type=PromptType.PRINCIPLE_IDENTIFICATION,
+                template="""
+Consider the following ethical dilemma:
+{dilemma}
+
+Your task is to identify the key ethical principles that should guide the reasoning process.
+Think step by step:
+1. What are the fundamental ethical values at stake?
+2. Which ethical frameworks are most relevant?
+3. What principles should guide the decision-making process?
+
+List each principle on a new line, starting with a bullet point.
+""",
+                expected_format="""- Principle 1
+- Principle 2
+...""",
+                guidance_notes="Guide the model to identify relevant ethical principles systematically."
+            ),
+            
+            PromptType.REASONING_GUIDANCE: PromptTemplate(
+                type=PromptType.REASONING_GUIDANCE,
+                template="""
+Given the ethical dilemma:
+{dilemma}
+
+And the identified principles:
+{principles}
+
+Guide your reasoning process through these steps:
+1. How does each principle apply to this situation?
+2. What are the potential conflicts between principles?
+3. How should these conflicts be resolved?
+4. What are the implications of different approaches?
+
+Provide your reasoning in a clear, structured format.
+""",
+                expected_format="""Step 1: [Analysis of first principle]
+Step 2: [Analysis of conflicts]
+Step 3: [Resolution approach]
+Step 4: [Implications]""",
+                guidance_notes="Guide the model through a structured reasoning process."
+            ),
+            
+            PromptType.RECOMMENDATION_GUIDANCE: PromptTemplate(
+                type=PromptType.RECOMMENDATION_GUIDANCE,
+                template="""
+Based on your reasoning:
+{reasoning}
+
+Generate specific, actionable recommendations that:
+1. Address the core ethical concerns
+2. Provide clear guidance for implementation
+3. Consider potential challenges
+4. Include monitoring and evaluation steps
+
+List each recommendation on a new line, starting with a bullet point.
+""",
+                expected_format="""- Recommendation 1
+- Recommendation 2
+...""",
+                guidance_notes="Guide the model to generate practical, ethical recommendations."
+            ),
+            
+            PromptType.CONFIDENCE_ASSESSMENT: PromptTemplate(
+                type=PromptType.CONFIDENCE_ASSESSMENT,
+                template="""
+Review your analysis of the dilemma:
+{dilemma}
+
+Your reasoning process:
+{reasoning}
+
+Your recommendations:
+{recommendations}
+
+On a scale of 0.0 to 1.0, how confident are you in your reasoning process?
+Consider:
+1. The clarity of your analysis
+2. The consistency of your approach
+3. The strength of your recommendations
+4. Any remaining uncertainties
+
+Provide a single number between 0.0 and 1.0.
+""",
+                expected_format="0.85",
+                guidance_notes="Guide the model to assess its own reasoning confidence."
+            )
         }
     
     def identify_dilemma_context(self, dilemma: str) -> List[str]:
@@ -155,4 +262,38 @@ Think step by step and explain your reasoning."""
             "ethical_balancing": cls.ETHICAL_BALANCING,
             "legal_feasibility": cls.LEGAL_FEASIBILITY,
             "recommendation": cls.RECOMMENDATION
-        } 
+        }
+
+    def get_principle_identification_prompt(self, dilemma: str) -> str:
+        """Get prompt to guide model in identifying ethical principles."""
+        template = self.templates[PromptType.PRINCIPLE_IDENTIFICATION]
+        return template.template.format(dilemma=dilemma)
+    
+    def get_reasoning_prompt(self, dilemma: str, principles: List[str]) -> str:
+        """Get prompt to guide model's reasoning process."""
+        template = self.templates[PromptType.REASONING_GUIDANCE]
+        principles_text = "\n".join(f"- {p}" for p in principles)
+        return template.template.format(
+            dilemma=dilemma,
+            principles=principles_text
+        )
+    
+    def get_recommendation_prompt(self, reasoning: str) -> str:
+        """Get prompt to guide model's recommendation generation."""
+        template = self.templates[PromptType.RECOMMENDATION_GUIDANCE]
+        return template.template.format(reasoning=reasoning)
+    
+    def get_confidence_prompt(
+        self,
+        dilemma: str,
+        reasoning: str,
+        recommendations: List[str]
+    ) -> str:
+        """Get prompt to guide model's confidence assessment."""
+        template = self.templates[PromptType.CONFIDENCE_ASSESSMENT]
+        recommendations_text = "\n".join(f"- {r}" for r in recommendations)
+        return template.template.format(
+            dilemma=dilemma,
+            reasoning=reasoning,
+            recommendations=recommendations_text
+        ) 

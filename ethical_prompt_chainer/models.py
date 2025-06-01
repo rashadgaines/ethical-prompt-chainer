@@ -1,11 +1,124 @@
 from typing import Optional, Dict, Any
+from enum import Enum
+from abc import ABC, abstractmethod
 from openai import OpenAI as OpenAIClient
 from xai_grok import Grok
 import os
 
-class ModelFactory:
-    """Factory class for creating language model instances."""
+class ModelType(Enum):
+    """Types of models that can be guided through ethical reasoning."""
+    GPT4 = "gpt-4"
+    GPT35 = "gpt-3.5-turbo"
+    GROK = "grok-1"
+    CUSTOM = "custom"
+
+class BaseModel(ABC):
+    """Base class for models that can be guided through ethical reasoning."""
     
+    def __init__(self, model_type: ModelType):
+        """
+        Initialize the model.
+        
+        Args:
+            model_type: The type of model to use
+        """
+        self.model_type = model_type
+    
+    @abstractmethod
+    def generate(self, prompt: str) -> str:
+        """
+        Generate a response to guide the model's reasoning.
+        
+        Args:
+            prompt: The engineered prompt to guide model behavior
+            
+        Returns:
+            The model's response
+        """
+        pass
+
+class ModelFactory:
+    """Factory for creating model instances for ethical reasoning."""
+    
+    def get_model(self, model_type: ModelType) -> BaseModel:
+        """
+        Get a model instance for ethical reasoning.
+        
+        Args:
+            model_type: The type of model to create
+            
+        Returns:
+            A model instance that can be guided through ethical reasoning
+        """
+        if model_type == ModelType.GPT4:
+            return GPT4Model()
+        elif model_type == ModelType.GPT35:
+            return GPT35Model()
+        elif model_type == ModelType.GROK:
+            return GrokModel()
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
+
+class GPT4Model(BaseModel):
+    """GPT-4 model for ethical reasoning."""
+    
+    def __init__(self):
+        """Initialize the GPT-4 model."""
+        super().__init__(ModelType.GPT4)
+    
+    def generate(self, prompt: str) -> str:
+        """
+        Generate a response using GPT-4.
+        
+        Args:
+            prompt: The engineered prompt to guide model behavior
+            
+        Returns:
+            The model's response
+        """
+        # Implementation would use OpenAI's API
+        pass
+
+class GPT35Model(BaseModel):
+    """GPT-3.5 model for ethical reasoning."""
+    
+    def __init__(self):
+        """Initialize the GPT-3.5 model."""
+        super().__init__(ModelType.GPT35)
+    
+    def generate(self, prompt: str) -> str:
+        """
+        Generate a response using GPT-3.5.
+        
+        Args:
+            prompt: The engineered prompt to guide model behavior
+            
+        Returns:
+            The model's response
+        """
+        # Implementation would use OpenAI's API
+        pass
+
+class GrokModel(BaseModel):
+    """Grok model for ethical reasoning."""
+    
+    def __init__(self):
+        """Initialize the Grok model."""
+        super().__init__(ModelType.GROK)
+    
+    def generate(self, prompt: str) -> str:
+        """
+        Generate a response using Grok.
+        
+        Args:
+            prompt: The engineered prompt to guide model behavior
+            
+        Returns:
+            The model's response
+        """
+        # Implementation would use Grok's API
+        pass
+
     @staticmethod
     def create_model(
         model_name: str,

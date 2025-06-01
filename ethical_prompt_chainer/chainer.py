@@ -1,298 +1,153 @@
-from typing import Dict, Any, Optional, Tuple, List, Set
+from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-import json
 import logging
-from pathlib import Path
 from datetime import datetime
 from .models import ModelFactory, ModelType
 from .prompts import EthicalPromptTemplates
-from .data_validator import DilemmaValidator
-from .cost_benefit import CostBenefitAnalyzer, CostBenefitMetrics
-from .benchmark import ModelBenchmarker, BenchmarkMetrics
-from .ethical_frameworks import EthicalFrameworkManager, EthicalPrinciple
-from .stakeholder_analysis import StakeholderAnalyzer, StakeholderImpact
-from .long_term_impact import LongTermImpactAnalyzer, LongTermImpact
-from .explainable_ai import ExplainableAI, AIExplanation, ExplanationType, ExplanationLevel
-import pandas as pd
+from .ethical_frameworks import EthicalFrameworkManager
 
 logger = logging.getLogger(__name__)
 
 @dataclass
-class EthicalAnalysis:
-    """Container for complete ethical analysis results."""
+class ModelReasoning:
+    """Container for model's reasoning process."""
     dilemma: str
-    context: List[str]
-    ethical_principles: List[str]
-    analysis: str
-    recommendations: List[str]
-    confidence_score: float
+    identified_principles: List[str]
+    reasoning_process: str
+    model_recommendations: List[str]
+    reasoning_confidence: float
     model_used: str
     timestamp: datetime
-    benchmark_results: Optional[BenchmarkMetrics] = None
-    ethical_alignment: Optional[Dict[str, float]] = None
-    stakeholder_impacts: Optional[List[StakeholderImpact]] = None
-    long_term_impact: Optional[LongTermImpact] = None
-    ai_explanation: Optional[AIExplanation] = None
 
 class EthicalPromptChainer:
-    """Main class for chaining ethical analysis prompts."""
+    """Main class for improving model behavior through prompt engineering."""
     
     def __init__(
         self,
-        model_type: ModelType = ModelType.GPT4,
-        benchmark_models: Optional[List[ModelType]] = None,
-        include_benchmark: bool = False,
-        include_explanation: bool = True
+        model_type: ModelType = ModelType.GPT4
     ):
         """
-        Initialize the ethical prompt chainer.
+        Initialize the prompt chainer.
         
         Args:
-            model_type: The type of model to use for analysis
-            benchmark_models: Optional list of models to benchmark against
-            include_benchmark: Whether to include benchmarking in analysis
-            include_explanation: Whether to include AI explanations
+            model_type: The type of model to improve
         """
         self.model_factory = ModelFactory()
         self.model = self.model_factory.get_model(model_type)
-        self.benchmarker = ModelBenchmarker() if include_benchmark else None
-        self.benchmark_models = benchmark_models if include_benchmark else None
         self.framework_manager = EthicalFrameworkManager()
-        self.stakeholder_analyzer = StakeholderAnalyzer()
-        self.long_term_analyzer = LongTermImpactAnalyzer()
-        self.explainer = ExplainableAI() if include_explanation else None
+        self.prompt_templates = EthicalPromptTemplates()
     
     def analyze_dilemma(
         self,
-        dilemma: str,
-        context: Optional[List[str]] = None,
-        include_benchmark: bool = False,
-        explanation_level: ExplanationLevel = ExplanationLevel.DETAILED
-    ) -> EthicalAnalysis:
+        dilemma: str
+    ) -> ModelReasoning:
         """
-        Perform a complete ethical analysis of a dilemma.
+        Guide the model through ethical reasoning.
         
         Args:
-            dilemma: The ethical dilemma to analyze
-            context: Optional list of relevant contexts
-            include_benchmark: Whether to include benchmarking in analysis
-            explanation_level: Level of detail for AI explanations
+            dilemma: The ethical dilemma to use for model training
             
         Returns:
-            EthicalAnalysis object containing the complete analysis
+            ModelReasoning object containing the model's reasoning process
         """
-        logger.info(f"Starting ethical analysis of dilemma: {dilemma[:100]}...")
+        logger.info(f"Starting model reasoning process for dilemma: {dilemma[:100]}...")
         
-        # Step 1: Identify ethical principles
-        principles = self._identify_ethical_principles(dilemma)
-        logger.info(f"Identified {len(principles)} ethical principles")
+        # Step 1: Guide model to identify principles
+        principles = self._guide_principle_identification(dilemma)
+        logger.info(f"Model identified {len(principles)} principles")
         
-        # Step 2: Analyze the dilemma
-        analysis = self._analyze_dilemma(dilemma, principles)
-        logger.info("Completed initial analysis")
+        # Step 2: Guide model's reasoning process
+        reasoning = self._guide_reasoning_process(dilemma, principles)
+        logger.info("Completed reasoning process")
         
-        # Step 3: Generate recommendations
-        recommendations = self._generate_recommendations(analysis)
-        logger.info(f"Generated {len(recommendations)} recommendations")
+        # Step 3: Guide model's recommendations
+        recommendations = self._guide_recommendations(reasoning)
+        logger.info(f"Model generated {len(recommendations)} recommendations")
         
-        # Step 4: Calculate confidence score
-        confidence_score = self._calculate_confidence_score(
-            dilemma, analysis, recommendations
+        # Step 4: Assess model's reasoning confidence
+        confidence = self._assess_reasoning_confidence(
+            dilemma, reasoning, recommendations
         )
-        logger.info(f"Calculated confidence score: {confidence_score:.2f}")
+        logger.info(f"Model's reasoning confidence: {confidence:.2f}")
         
-        # Step 5: Run model benchmarking if requested
-        benchmark_results = None
-        if include_benchmark and self.benchmarker and self.benchmark_models:
-            try:
-                benchmark_results = self.benchmarker.benchmark_model(
-                    self.model,
-                    dilemma,
-                    self.benchmark_models
-                )
-                logger.info("Completed model benchmarking")
-            except Exception as e:
-                logger.error(f"Error during benchmarking: {str(e)}")
-        
-        # Step 6: Analyze ethical alignment
-        try:
-            ethical_alignment = self._analyze_ethical_alignment(analysis)
-            logger.info("Completed ethical alignment analysis")
-        except Exception as e:
-            logger.error(f"Error during ethical alignment analysis: {str(e)}")
-            ethical_alignment = None
-        
-        # Step 7: Analyze stakeholder impacts
-        try:
-            stakeholder_impacts = self._analyze_stakeholder_impacts(dilemma, context)
-            logger.info("Completed stakeholder impact analysis")
-        except Exception as e:
-            logger.error(f"Error during stakeholder impact analysis: {str(e)}")
-            stakeholder_impacts = None
-        
-        # Step 8: Analyze long-term impacts
-        try:
-            long_term_impact = self._analyze_long_term_impacts(dilemma, context)
-            logger.info("Completed long-term impact analysis")
-        except Exception as e:
-            logger.error(f"Error during long-term impact analysis: {str(e)}")
-            long_term_impact = None
-        
-        # Step 9: Generate AI explanations
-        ai_explanation = None
-        if self.explainer:
-            try:
-                ai_explanation = self._generate_ai_explanation(
-                    dilemma, analysis, explanation_level
-                )
-                logger.info("Completed AI explanation generation")
-            except Exception as e:
-                logger.error(f"Error during AI explanation generation: {str(e)}")
-        
-        return EthicalAnalysis(
+        return ModelReasoning(
             dilemma=dilemma,
-            context=context or [],
-            ethical_principles=principles,
-            analysis=analysis,
-            recommendations=recommendations,
-            confidence_score=confidence_score,
+            identified_principles=principles,
+            reasoning_process=reasoning,
+            model_recommendations=recommendations,
+            reasoning_confidence=confidence,
             model_used=self.model.model_type.value,
-            timestamp=datetime.now(),
-            benchmark_results=benchmark_results,
-            ethical_alignment=ethical_alignment,
-            stakeholder_impacts=stakeholder_impacts,
-            long_term_impact=long_term_impact,
-            ai_explanation=ai_explanation
+            timestamp=datetime.now()
         )
     
-    def _analyze_long_term_impacts(
+    def _guide_principle_identification(self, dilemma: str) -> List[str]:
+        """Guide the model to identify relevant principles."""
+        prompt = self.prompt_templates.get_principle_identification_prompt(dilemma)
+        response = self.model.generate(prompt)
+        return self._parse_principles(response)
+    
+    def _guide_reasoning_process(self, dilemma: str, principles: List[str]) -> str:
+        """Guide the model through its reasoning process."""
+        prompt = self.prompt_templates.get_reasoning_prompt(dilemma, principles)
+        return self.model.generate(prompt)
+    
+    def _guide_recommendations(self, reasoning: str) -> List[str]:
+        """Guide the model to generate recommendations."""
+        prompt = self.prompt_templates.get_recommendation_prompt(reasoning)
+        response = self.model.generate(prompt)
+        return self._parse_recommendations(response)
+    
+    def _assess_reasoning_confidence(
         self,
         dilemma: str,
-        context: Optional[List[str]]
-    ) -> LongTermImpact:
-        """
-        Analyze long-term impacts of the dilemma.
-        
-        Args:
-            dilemma: The ethical dilemma to analyze
-            context: Optional list of relevant contexts
-            
-        Returns:
-            LongTermImpact object containing the analysis
-        """
-        return self.long_term_analyzer.analyze_long_term_impact(
-            dilemma,
-            context or []
+        reasoning: str,
+        recommendations: List[str]
+    ) -> float:
+        """Assess the model's confidence in its reasoning."""
+        prompt = self.prompt_templates.get_confidence_prompt(
+            dilemma, reasoning, recommendations
         )
+        response = self.model.generate(prompt)
+        return self._parse_confidence_score(response)
     
-    def _generate_ai_explanation(
-        self,
-        dilemma: str,
-        analysis: str,
-        level: ExplanationLevel
-    ) -> AIExplanation:
-        """
-        Generate AI explanations for the analysis.
-        
-        Args:
-            dilemma: The ethical dilemma
-            analysis: The analysis to explain
-            level: Level of detail for the explanation
-            
-        Returns:
-            AIExplanation object containing the explanations
-        """
-        return self.explainer.explain_analysis(
-            analysis,
-            ExplanationType.FEATURE_IMPORTANCE,
-            level
-        )
+    def _parse_principles(self, response: str) -> List[str]:
+        """Parse principles from model response."""
+        # Implementation depends on response format
+        return [p.strip() for p in response.split('\n') if p.strip()]
     
-    def format_analysis(self, analysis: EthicalAnalysis) -> str:
-        """
-        Format the complete ethical analysis into a readable report.
-        
-        Args:
-            analysis: The EthicalAnalysis object to format
-            
-        Returns:
-            Formatted analysis report as a string
-        """
-        report = "Ethical Analysis Report\n"
-        report += "=" * 50 + "\n\n"
-        
-        # Basic information
-        report += f"Dilemma: {analysis.dilemma}\n"
-        report += f"Context: {', '.join(analysis.context)}\n"
-        report += f"Model Used: {analysis.model_used}\n"
-        report += f"Timestamp: {analysis.timestamp}\n\n"
-        
-        # Ethical principles
-        report += "Ethical Principles:\n"
-        report += "-" * 30 + "\n"
-        for principle in analysis.ethical_principles:
-            report += f"• {principle}\n"
-        report += "\n"
-        
-        # Analysis
-        report += "Analysis:\n"
-        report += "-" * 30 + "\n"
-        report += analysis.analysis + "\n\n"
-        
-        # Recommendations
-        report += "Recommendations:\n"
-        report += "-" * 30 + "\n"
-        for recommendation in analysis.recommendations:
-            report += f"• {recommendation}\n"
-        report += "\n"
-        
-        # Confidence score
-        report += f"Confidence Score: {analysis.confidence_score:.1%}\n\n"
-        
-        # Benchmark results
-        if analysis.benchmark_results:
-            report += "Model Benchmark Results:\n"
-            report += "-" * 30 + "\n"
-            report += self.benchmarker.format_benchmark_results(
-                analysis.benchmark_results
-            ) + "\n\n"
-        
-        # Ethical alignment
-        if analysis.ethical_alignment:
-            report += "Ethical Alignment Analysis:\n"
-            report += "-" * 30 + "\n"
-            for principle, score in analysis.ethical_alignment.items():
-                report += f"• {principle}: {score:.1%}\n"
-            report += "\n"
-        
-        # Stakeholder impacts
-        if analysis.stakeholder_impacts:
-            report += "Stakeholder Impact Analysis:\n"
-            report += "-" * 30 + "\n"
-            for impact in analysis.stakeholder_impacts:
-                report += f"\nStakeholder: {impact.stakeholder}\n"
-                report += f"Impact Type: {impact.impact_type.value}\n"
-                report += f"Severity: {impact.severity.value}\n"
-                report += f"Description: {impact.description}\n"
-                report += "Affected Aspects:\n"
-                for aspect in impact.affected_aspects:
-                    report += f"  • {aspect}\n"
-                report += "Mitigation Suggestions:\n"
-                for suggestion in impact.mitigation_suggestions:
-                    report += f"  • {suggestion}\n"
-                report += f"Confidence Score: {impact.confidence_score:.1%}\n"
-            report += "\n"
-        
-        # Long-term impacts
-        if analysis.long_term_impact:
-            report += self.long_term_analyzer.format_impact_analysis(
-                analysis.long_term_impact
-            )
-        
-        # AI Explanation
-        if analysis.ai_explanation:
-            report += "\n" + self.explainer.format_explanation(
-                analysis.ai_explanation
-            )
-        
-        return report
+    def _parse_recommendations(self, response: str) -> List[str]:
+        """Parse recommendations from model response."""
+        # Implementation depends on response format
+        return [r.strip() for r in response.split('\n') if r.strip()]
+    
+    def _parse_confidence_score(self, response: str) -> float:
+        """Parse confidence score from model response."""
+        try:
+            return float(response.strip())
+        except ValueError:
+            return 0.5  # Default confidence if parsing fails
+    
+    def format_analysis(self, reasoning: ModelReasoning) -> str:
+        """Format the model's reasoning process into a readable string."""
+        return f"""
+Model Reasoning Process
+=====================
+
+Dilemma: {reasoning.dilemma}
+
+Identified Principles:
+--------------------
+{chr(10).join(f'- {p}' for p in reasoning.identified_principles)}
+
+Reasoning Process:
+----------------
+{reasoning.reasoning_process}
+
+Model's Recommendations:
+----------------------
+{chr(10).join(f'- {r}' for r in reasoning.model_recommendations)}
+
+Reasoning Confidence: {reasoning.reasoning_confidence:.2f}
+Model Used: {reasoning.model_used}
+Timestamp: {reasoning.timestamp}
+"""

@@ -1,6 +1,6 @@
 # Ethical Prompt Chainer
 
-A structured framework for guiding AI models through ethical reasoning using chain-of-thought prompting.
+A sophisticated Python library that implements structured ethical reasoning chains for AI models, enabling systematic analysis of complex ethical dilemmas through advanced prompt engineering and chain-of-thought methodologies.
 
 ## Overview
 

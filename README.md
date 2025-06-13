@@ -1,6 +1,6 @@
 # Ethical Prompt Chainer
 
-A Python package that implements a structured approach to ethical analysis using language models.
+Implements a structured approach to ethical analysis using language models.
 
 ## Core Functionality
 

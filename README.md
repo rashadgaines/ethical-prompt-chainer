@@ -114,11 +114,6 @@ ethical_prompt_chainer/
 pytest -v --cov=ethical_prompt_chainer
 ```
 
-### Code Quality
-- Type hints required
-- Black formatting
-- MyPy type checking
-- Pytest coverage reporting
 
 ## License
 
